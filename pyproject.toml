@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "ob3-document-processing-service"
+version = "0.1.0"
+description = "Django REST API сервис для автоматической обработки, классификации и валидации загружаемых документов"
+authors = ["Rinat Gabitov riga1897@yandex.ru"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
