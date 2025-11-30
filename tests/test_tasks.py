@@ -102,16 +102,16 @@ class TestSendAdminNotificationTask:
         return UserFactory(is_staff=True, email="admin@example.com")
 
     @pytest.fixture
-    def document(self, user: Any) -> Document:
+    def document(self, user: Any) -> Any:
         """Create test document."""
         return DocumentFactory(owner=user, status=Document.Status.PENDING)
 
     def test_send_admin_notification_success(
-        self, document: Document, admin_user: Any
+        self, document: Any, admin_user: Any
     ) -> None:
         """Test successful admin notification."""
         with patch("apps.documents.tasks.send_mail") as mock_send_mail:
-            result = send_admin_notification_task.apply(args=[str(document.id)]).get()
+            result = send_admin_notification_task.apply(args=(str(document.id),)).get()
 
         assert result["status"] == "sent"
         assert result["recipients_count"] == 1
@@ -121,9 +121,9 @@ class TestSendAdminNotificationTask:
         assert document.original_filename in call_args.kwargs["subject"]
         assert "admin@example.com" in call_args.kwargs["recipient_list"]
 
-    def test_send_admin_notification_no_admins(self, document: Document) -> None:
+    def test_send_admin_notification_no_admins(self, document: Any) -> None:
         """Test notification skipped when no admins."""
-        result = send_admin_notification_task.apply(args=[str(document.id)]).get()
+        result = send_admin_notification_task.apply(args=(str(document.id),)).get()
 
         assert result["status"] == "skipped"
         assert result["reason"] == "no_admins"
@@ -131,7 +131,7 @@ class TestSendAdminNotificationTask:
     def test_send_admin_notification_document_not_found(self, db: Any) -> None:
         """Test notification with non-existent document."""
         result = send_admin_notification_task.apply(
-            args=["00000000-0000-0000-0000-000000000000"]
+            args=("00000000-0000-0000-0000-000000000000",)
         ).get()
 
         assert result["status"] == "error"
@@ -148,21 +148,21 @@ class TestSendUserNotificationTask:
         return UserFactory(email="user@example.com")
 
     @pytest.fixture
-    def document(self, user: Any) -> Document:
+    def document(self, user: Any) -> Any:
         """Create test document."""
         return DocumentFactory(
             owner=user,
             status=Document.Status.APPROVED,
         )
 
-    def test_send_user_notification_approved(self, document: Document) -> None:
+    def test_send_user_notification_approved(self, document: Any) -> None:
         """Test user notification for approved document."""
         document.reviewed_at = timezone.now()
         document.save()
 
         with patch("apps.documents.tasks.send_mail") as mock_send_mail:
             result = send_user_notification_task.apply(
-                args=[str(document.id), "approved"]
+                args=(str(document.id), "approved")
             ).get()
 
         assert result["status"] == "sent"
@@ -173,7 +173,7 @@ class TestSendUserNotificationTask:
         call_args = mock_send_mail.call_args
         assert "подтверждён" in call_args.kwargs["subject"]
 
-    def test_send_user_notification_rejected(self, document: Document) -> None:
+    def test_send_user_notification_rejected(self, document: Any) -> None:
         """Test user notification for rejected document."""
         document.status = Document.Status.REJECTED
         document.rejection_reason = "Invalid format"
@@ -181,7 +181,7 @@ class TestSendUserNotificationTask:
 
         with patch("apps.documents.tasks.send_mail") as mock_send_mail:
             result = send_user_notification_task.apply(
-                args=[str(document.id), "rejected"]
+                args=(str(document.id), "rejected")
             ).get()
 
         assert result["status"] == "sent"
@@ -191,10 +191,10 @@ class TestSendUserNotificationTask:
         call_args = mock_send_mail.call_args
         assert "отклонён" in call_args.kwargs["subject"]
 
-    def test_send_user_notification_unknown_action(self, document: Document) -> None:
+    def test_send_user_notification_unknown_action(self, document: Any) -> None:
         """Test notification with unknown action."""
         result = send_user_notification_task.apply(
-            args=[str(document.id), "unknown"]
+            args=(str(document.id), "unknown")
         ).get()
 
         assert result["status"] == "error"
@@ -203,7 +203,7 @@ class TestSendUserNotificationTask:
     def test_send_user_notification_document_not_found(self, db: Any) -> None:
         """Test notification with non-existent document."""
         result = send_user_notification_task.apply(
-            args=["00000000-0000-0000-0000-000000000000", "approved"]
+            args=("00000000-0000-0000-0000-000000000000", "approved")
         ).get()
 
         assert result["status"] == "error"
@@ -215,7 +215,7 @@ class TestSendUserNotificationTask:
         document = DocumentFactory(owner=user_no_email, status=Document.Status.APPROVED)
 
         result = send_user_notification_task.apply(
-            args=[str(document.id), "approved"]
+            args=(str(document.id), "approved")
         ).get()
 
         assert result["status"] == "skipped"
@@ -273,12 +273,12 @@ class TestSmtpErrorHandling:
         return UserFactory(is_staff=True, email="admin@example.com")
 
     @pytest.fixture
-    def document(self, user: Any) -> Document:
+    def document(self, user: Any) -> Any:
         """Create test document."""
         return DocumentFactory(owner=user, status=Document.Status.PENDING)
 
     def test_admin_notification_smtp_error_triggers_retry(
-        self, document: Document, admin_user: Any
+        self, document: Any, admin_user: Any
     ) -> None:
         """Test admin notification triggers Celery retry on SMTP error."""
         from smtplib import SMTPException
@@ -292,15 +292,13 @@ class TestSmtpErrorHandling:
             mock_send_mail.side_effect = SMTPException("SMTP connection failed")
 
             with pytest.raises(Retry):
-                send_admin_notification_task.apply(args=[str(document.id)]).get()
+                send_admin_notification_task.apply(args=(str(document.id),)).get()
 
             mock_logger.error.assert_called()
             call_args = mock_logger.error.call_args
             assert call_args[0][0] == "smtp_error_admin_notification"
 
-    def test_user_notification_smtp_error_triggers_retry(
-        self, document: Document
-    ) -> None:
+    def test_user_notification_smtp_error_triggers_retry(self, document: Any) -> None:
         """Test user notification triggers Celery retry on SMTP error."""
         from smtplib import SMTPException
 
@@ -316,7 +314,9 @@ class TestSmtpErrorHandling:
             mock_send_mail.side_effect = SMTPException("SMTP connection failed")
 
             with pytest.raises(Retry):
-                send_user_notification_task.apply(args=[str(document.id), "approved"]).get()
+                send_user_notification_task.apply(
+                    args=(str(document.id), "approved")
+                ).get()
 
             mock_logger.error.assert_called()
             call_args = mock_logger.error.call_args

@@ -23,6 +23,8 @@ def send_admin_notification_task(self: Any, document_id: str) -> dict[str, Any]:
 
     Returns:
         dict: Результат отправки
+        :param document_id:
+        :param self:
     """
     from apps.users.models import User
 
@@ -104,6 +106,9 @@ def send_user_notification_task(
 
     Returns:
         dict: Результат отправки
+        :param action:
+        :param document_id:
+        :param self:
     """
     from .models import Document
 

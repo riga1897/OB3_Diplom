@@ -33,7 +33,9 @@ class Command(BaseCommand):
 
     help = "Очищает базу и загружает начальные данные из фикстур (fixtures/)"
 
-    FIXTURES_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "fixtures"
+    FIXTURES_DIR = (
+        Path(__file__).resolve().parent.parent.parent.parent.parent / "fixtures"
+    )
 
     FIXTURE_FILES = [
         "users.json",
@@ -60,9 +62,7 @@ class Command(BaseCommand):
         """Выполнить команду."""
         dry_run: bool = options["dry_run"]
 
-        self.stdout.write(
-            self.style.NOTICE(f"Директория фикстур: {self.FIXTURES_DIR}")
-        )
+        self.stdout.write(self.style.NOTICE(f"Директория фикстур: {self.FIXTURES_DIR}"))
         self.stdout.write("")
 
         self._truncate_tables(dry_run)
@@ -106,9 +106,7 @@ class Command(BaseCommand):
                         cursor.execute(f"TRUNCATE TABLE {quoted_table} CASCADE")
                     self.stdout.write(self.style.SUCCESS(f"  [OK] {table}"))
                 except Exception as e:
-                    self.stdout.write(
-                        self.style.ERROR(f"  [ОШИБКА] {table}: {e}")
-                    )
+                    self.stdout.write(self.style.ERROR(f"  [ОШИБКА] {table}: {e}"))
 
     def _reset_sequences(self, dry_run: bool) -> None:
         """Сбросить sequences (счётчики) для всех таблиц."""
@@ -160,9 +158,7 @@ class Command(BaseCommand):
             else:
                 try:
                     call_command("loaddata", str(fixture_path), verbosity=0)
-                    self.stdout.write(
-                        self.style.SUCCESS(f"  [OK] {fixture_name}")
-                    )
+                    self.stdout.write(self.style.SUCCESS(f"  [OK] {fixture_name}"))
                     loaded_count += 1
                 except Exception as e:
                     self.stdout.write(

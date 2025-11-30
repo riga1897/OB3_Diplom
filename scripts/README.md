@@ -22,11 +22,7 @@ scripts/
 │   ├── fix.bat       # CMD версия
 │   └── fix.ps1       # PowerShell версия
 │
-├── entrypoint.sh      # Docker entrypoint скрипт
-│
-└── Python модули (используются Poetry)
-    ├── check.py      # Модуль для poetry run check
-    └── fix.py        # Модуль для poetry run fix
+└── entrypoint.sh      # Docker entrypoint скрипт
 ```
 
 ---
@@ -73,13 +69,6 @@ scripts\windows\fix.bat
 
 # Автоисправление кода
 .\scripts\windows\fix.ps1
-```
-
-### Через Poetry (кросс-платформенно)
-
-```bash
-poetry run check  # Проверка качества
-poetry run fix    # Автоисправление
 ```
 
 ### Через Makefile (только Linux/Mac/WSL)
@@ -163,7 +152,6 @@ docker compose exec web ./scripts/unix/check.sh
 | **Linux/Mac** | `./scripts/unix/*.sh` (bash) или `make` |
 | **WSL** | `./scripts/unix/*.sh` (bash) |
 | **Docker** | `docker compose exec web pytest` |
-| **Любая** | `poetry run check` / `poetry run fix` |
 
 ---
 

@@ -1,14 +1,17 @@
 """Представления (views) для приложения Users."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth import logout
 from django.db.models import QuerySet
 
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import generics, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.documents.permissions import IsSelf
 
@@ -26,20 +29,23 @@ if TYPE_CHECKING:
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet[User],
-    ): ...
+    ):
+        request: Request
 
-else:
-    _RegisterView = generics.CreateAPIView
-    _UserViewSet = type(
-        "_UserViewSet",
-        (
-            mixins.ListModelMixin,
-            mixins.RetrieveModelMixin,
-            mixins.UpdateModelMixin,
-            viewsets.GenericViewSet,
-        ),
-        {},
-    )
+        def get_serializer(self, *args: Any, **kwargs: Any) -> BaseSerializer[User]: ...
+
+
+_RegisterView = generics.CreateAPIView  # type: ignore[misc,assignment]
+_UserViewSet = type(  # type: ignore[misc,assignment]
+    "_UserViewSet",
+    (
+        mixins.ListModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        viewsets.GenericViewSet,
+    ),
+    {},
+)
 
 
 class RegisterView(_RegisterView):
@@ -120,7 +126,7 @@ class UserViewSet(_UserViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class LogoutView(generics.GenericAPIView):
+class LogoutView(generics.GenericAPIView):  # type: ignore[type-arg]
     """
     Выход из системы.
 
@@ -157,4 +163,65 @@ class LogoutView(generics.GenericAPIView):
         return Response(
             {"detail": "Выход выполнен успешно."},
             status=status.HTTP_205_RESET_CONTENT,
+        )
+
+
+class SessionTokenView(generics.GenericAPIView):  # type: ignore[type-arg]
+    """
+    Получение JWT токена для уже аутентифицированного пользователя.
+
+    Позволяет пользователю, залогиненному через сессию (web-интерфейс),
+    получить JWT токены без повторного ввода логина/пароля.
+
+    **POST /api/users/token/session/**
+
+    Требуется: активная сессия (SessionAuthentication)
+
+    Ответ (200 OK):
+    ```json
+    {
+        "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+        "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+    }
+    ```
+
+    Безопасность:
+    - Токены выдаются только аутентифицированным пользователям
+    - Access token короткоживущий (15 мин по умолчанию)
+    - При logout refresh token добавляется в blacklist
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        summary="Получить JWT токен для сессионного пользователя",
+        description="Выдаёт JWT access и refresh токены пользователю, "
+        "уже аутентифицированному через сессию.",
+        tags=["Аутентификация"],
+        request=None,
+        responses={
+            200: OpenApiResponse(
+                description="Токены успешно выданы",
+                examples=[
+                    OpenApiExample(
+                        "Успешный ответ",
+                        value={
+                            "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                            "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                        },
+                    )
+                ],
+            ),
+            401: OpenApiResponse(description="Пользователь не аутентифицирован"),
+        },
+    )
+    def post(self, request: Request) -> Response:
+        """Выдать JWT токены аутентифицированному пользователю."""
+        refresh = RefreshToken.for_user(request.user)  # type: ignore[arg-type,type-var]
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_200_OK,
         )

@@ -5,6 +5,7 @@ from typing import Any
 from django.core.cache import cache
 from django.db import connection
 
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -12,9 +13,44 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 
+@extend_schema(
+    summary="Проверка здоровья сервиса",
+    description="Эндпоинт для мониторинга и балансировщиков нагрузки. "
+    "Проверяет подключение к базе данных и кэшу.",
+    tags=["Мониторинг"],
+    responses={
+        200: OpenApiResponse(
+            description="Сервис здоров",
+            examples=[
+                OpenApiExample(
+                    "Успешная проверка",
+                    value={
+                        "status": "healthy",
+                        "checks": {"database": "ok", "cache": "ok"},
+                    },
+                )
+            ],
+        ),
+        503: OpenApiResponse(
+            description="Сервис недоступен",
+            examples=[
+                OpenApiExample(
+                    "База данных недоступна",
+                    value={
+                        "status": "unhealthy",
+                        "checks": {
+                            "database": "error: connection refused",
+                            "cache": "ok",
+                        },
+                    },
+                )
+            ],
+        ),
+    },
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def health_check(request: Request) -> Response:
+def health_check(_request: Request) -> Response:
     """
     Эндпоинт проверки здоровья сервиса для мониторинга и балансировщиков нагрузки.
 
@@ -61,6 +97,37 @@ def health_check(request: Request) -> Response:
     return Response(health_status, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    summary="Корневой эндпоинт API",
+    description="Список всех доступных ресурсов API. "
+    "Динамически собирает endpoints из всех приложений.",
+    tags=["API"],
+    responses={
+        200: OpenApiResponse(
+            description="Список доступных эндпоинтов",
+            examples=[
+                OpenApiExample(
+                    "Список эндпоинтов",
+                    value={
+                        "documents": "http://example.com/api/documents/",
+                        "processing_tasks": "http://example.com/api/documents/tasks/",
+                        "health": "http://example.com/health/",
+                        "auth": {
+                            "obtain_token": "http://example.com/api/users/token/",
+                            "refresh_token": "http://example.com/api/users/token/refresh/",
+                            "verify_token": "http://example.com/api/users/token/verify/",
+                        },
+                        "documentation": {
+                            "swagger-ui": "http://example.com/api/schema/swagger-ui/",
+                            "redoc": "http://example.com/api/schema/redoc/",
+                            "openapi-schema": "http://example.com/api/schema/",
+                        },
+                    },
+                )
+            ],
+        ),
+    },
+)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def api_root(request: Request, response_format: str | None = None) -> Response:

@@ -5,9 +5,10 @@ from datetime import timedelta
 from pathlib import Path
 from typing import TypeVar
 
+from django.core.exceptions import ImproperlyConfigured
+
 import dj_database_url
 from decouple import UndefinedValueError, config
-from django.core.exceptions import ImproperlyConfigured
 
 T = TypeVar("T")
 
@@ -32,11 +33,11 @@ def require_env(var_name: str, cast: type[T] = str) -> T:  # type: ignore[assign
     """
     try:
         return config(var_name, cast=cast)
-    except UndefinedValueError:
+    except UndefinedValueError as err:
         raise ImproperlyConfigured(
             f"Переменная окружения {var_name} обязательна! "
             f"Добавьте её в .env файл или Secrets."
-        )
+        ) from err
 
 
 # Пути проекта
@@ -159,11 +160,11 @@ if _database_url:
     }
 else:
     # Локальная разработка: требуем все DB_* параметры явно
-    _db_user = require_env("DB_USER")
-    _db_password = require_env("DB_PASSWORD")
-    _db_host = require_env("DB_HOST")
-    _db_port = require_env("DB_PORT")
-    _db_name = require_env("DB_NAME")
+    _db_user: str = require_env("DB_USER")
+    _db_password: str = require_env("DB_PASSWORD")
+    _db_host: str = require_env("DB_HOST")
+    _db_port: str = require_env("DB_PORT")
+    _db_name: str = require_env("DB_NAME")
 
     _constructed_db_url = (
         f"postgresql://{_db_user}:{_db_password}@{_db_host}:{_db_port}/{_db_name}"

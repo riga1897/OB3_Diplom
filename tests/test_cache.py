@@ -39,9 +39,7 @@ class TestCacheManagerKeyGeneration:
 class TestCacheManagerDocumentList:
     """Tests for document list caching."""
 
-    def test_get_document_list_returns_cached_data(
-        self, mock_cache: MagicMock
-    ) -> None:
+    def test_get_document_list_returns_cached_data(self, mock_cache: MagicMock) -> None:
         """Test getting cached document list."""
         user_id = 1
         expected_data: list[dict[str, Any]] = [{"id": 1, "title": "Doc"}]
@@ -131,9 +129,7 @@ class TestCacheManagerDocumentDetail:
 class TestCacheManagerStatistics:
     """Tests for statistics caching."""
 
-    def test_get_statistics_returns_cached_data(
-        self, mock_cache: MagicMock
-    ) -> None:
+    def test_get_statistics_returns_cached_data(self, mock_cache: MagicMock) -> None:
         """Test getting cached statistics."""
         user_id = 1
         expected_data: dict[str, int] = {"total": 10, "approved": 5}

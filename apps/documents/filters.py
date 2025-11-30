@@ -72,8 +72,9 @@ class DocumentFilter(filters.FilterSet):
             "search",
         ]
 
+    @staticmethod
     def filter_is_reviewed(
-        self, queryset: "QuerySet[Document]", name: str, value: bool
+        queryset: "QuerySet[Document]", _name: str, value: bool
     ) -> "QuerySet[Document]":
         """Фильтрация проверенных документов."""
         if value:
@@ -82,8 +83,9 @@ class DocumentFilter(filters.FilterSet):
             )
         return queryset.filter(status=Document.Status.PENDING)
 
+    @staticmethod
     def filter_search(
-        self, queryset: "QuerySet[Document]", name: str, value: str
+        queryset: "QuerySet[Document]", _name: str, value: str
     ) -> "QuerySet[Document]":
         """Поиск по нескольким полям."""
         return queryset.filter(models.Q(original_filename__icontains=value))

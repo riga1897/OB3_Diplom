@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -30,7 +31,7 @@ class Document(UUIDModel, TimeStampedModel, SoftDeleteModel):
         TXT = "txt", "Текстовый файл"  # type: ignore[misc]
         IMAGE = "image", "Изображение"  # type: ignore[misc]
 
-    owner = models.ForeignKey(
+    owner = models.ForeignKey(  # type: ignore[var-annotated]
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="documents",
@@ -41,17 +42,17 @@ class Document(UUIDModel, TimeStampedModel, SoftDeleteModel):
         validators=[validate_file_extension_safety],
         verbose_name="Файл",
     )
-    file_type = models.CharField(
+    file_type = models.CharField(  # type: ignore[var-annotated]
         max_length=10,
         choices=FileType.choices,
         db_index=True,
         verbose_name="Тип файла",
     )
-    file_size = models.PositiveIntegerField(
+    file_size = models.PositiveIntegerField(  # type: ignore[var-annotated]
         help_text="Размер в байтах",
         verbose_name="Размер файла",
     )
-    status = models.CharField(
+    status = models.CharField(  # type: ignore[var-annotated]
         max_length=20,
         choices=Status.choices,
         default=Status.PENDING,
@@ -59,15 +60,15 @@ class Document(UUIDModel, TimeStampedModel, SoftDeleteModel):
         verbose_name="Статус",
     )
 
-    original_filename = models.CharField(
+    original_filename = models.CharField(  # type: ignore[var-annotated]
         max_length=255, verbose_name="Исходное имя файла"
     )
-    rejection_reason = models.TextField(
+    rejection_reason = models.TextField(  # type: ignore[var-annotated]
         blank=True,
         verbose_name="Причина отклонения",
         help_text="Заполняется при отклонении документа",
     )
-    reviewed_at = models.DateTimeField(
+    reviewed_at = models.DateTimeField(  # type: ignore[var-annotated]
         null=True,
         blank=True,
         verbose_name="Дата проверки",
@@ -93,7 +94,7 @@ class Document(UUIDModel, TimeStampedModel, SoftDeleteModel):
         force_insert: bool = False,
         force_update: bool = False,
         using: str | None = None,
-        update_fields: list[str] | None = None,
+        update_fields: Iterable[str] | None = None,
     ) -> None:
         """Сохранение документа с проверкой безопасности расширения."""
         from django.core.exceptions import ValidationError

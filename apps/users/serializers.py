@@ -3,7 +3,10 @@
 from typing import TYPE_CHECKING, Any
 
 from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework_simplejwt.tokens import (  # type: ignore[attr-defined]
+    RefreshToken,
+    TokenError,
+)
 
 from .models import User
 
@@ -14,9 +17,9 @@ if TYPE_CHECKING:
 
     class _UserCreateSerializer(ModelSerializer[User]): ...
 
-else:
-    _UserSerializer = serializers.ModelSerializer
-    _UserCreateSerializer = serializers.ModelSerializer
+
+_UserSerializer = serializers.ModelSerializer  # type: ignore[misc,assignment]
+_UserCreateSerializer = serializers.ModelSerializer  # type: ignore[misc,assignment]
 
 
 class PublicUserSerializer(_UserSerializer):
@@ -114,7 +117,8 @@ class LogoutSerializer(serializers.Serializer[None]):
         allow_blank=True,
     )
 
-    def validate_refresh(self, value: str) -> str:
+    @staticmethod
+    def validate_refresh(value: str) -> str:
         """Валидация refresh-токена (базовая проверка формата)."""
         return value
 

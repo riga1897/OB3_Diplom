@@ -77,7 +77,7 @@ COPY --chown=ob3:ob3 apps ./apps
 COPY --chown=ob3:ob3 config ./config
 COPY --chown=ob3:ob3 tests ./tests
 COPY --chown=ob3:ob3 static ./static
-COPY --chown=ob3:ob3 manage.py pytest.ini ./
+COPY --chown=ob3:ob3 manage.py pytest.ini pyproject.toml ./
 
 COPY --chown=ob3:ob3 scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

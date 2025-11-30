@@ -42,7 +42,8 @@ class DocumentProcessingService:
             logger.error(f"Ошибка извлечения текста из {file_path}: {e}")
             raise
 
-    def _extract_text_from_pdf(self, file_path: str) -> str:
+    @staticmethod
+    def _extract_text_from_pdf(file_path: str) -> str:
         """Извлечь текст из PDF файла."""
         import pypdf
 
@@ -53,7 +54,8 @@ class DocumentProcessingService:
                 text += page.extract_text() + "\n"
         return text.strip()
 
-    def _extract_text_from_docx(self, file_path: str) -> str:
+    @staticmethod
+    def _extract_text_from_docx(file_path: str) -> str:
         """Извлечь текст из DOCX файла."""
         import docx
 
@@ -61,18 +63,21 @@ class DocumentProcessingService:
         text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
         return text.strip()
 
-    def _extract_text_from_txt(self, file_path: str) -> str:
+    @staticmethod
+    def _extract_text_from_txt(file_path: str) -> str:
         """Извлечь текст из TXT файла."""
         with open(file_path, encoding="utf-8") as file:
             return file.read().strip()
 
-    def _extract_text_from_image(self, file_path: str) -> str:
+    @staticmethod
+    def _extract_text_from_image(_file_path: str) -> str:
         """Извлечь текст из изображения с помощью OCR (заглушка)."""
         # TODO: Реализовать OCR с tesseract
         logger.warning("OCR ещё не реализован, возвращаем пустую строку")
         return ""
 
-    def classify_document(self, text: str) -> tuple[str, float]:
+    @staticmethod
+    def classify_document(text: str) -> tuple[str, float]:
         """
         Классифицировать документ на основе извлечённого текста.
 
@@ -105,6 +110,8 @@ class DocumentProcessingService:
         classification = max(scores, key=lambda k: scores[k])
         confidence = scores[classification]
 
-        logger.info(f"Классифицирован как: {classification} (уверенность: {confidence:.2f})")
+        logger.info(
+            f"Классифицирован как: {classification} (уверенность: {confidence:.2f})"
+        )
 
         return classification, confidence

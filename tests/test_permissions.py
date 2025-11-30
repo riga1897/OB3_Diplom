@@ -42,7 +42,7 @@ class TestIsOwnerOrReadOnly:
 
         for method in ["get", "head", "options"]:
             request = getattr(factory, method)("/")
-            request.user = user
+            request.user = user  # type: ignore[assignment]
             assert permission.has_object_permission(request, MagicMock(), document)
 
     def test_owner_can_modify(
@@ -53,7 +53,7 @@ class TestIsOwnerOrReadOnly:
         document = DocumentFactory(owner=owner)
 
         request = factory.put("/")
-        request.user = owner
+        request.user = owner  # type: ignore[assignment]
         assert permission.has_object_permission(request, MagicMock(), document)
 
     def test_non_owner_cannot_modify(
@@ -65,7 +65,7 @@ class TestIsOwnerOrReadOnly:
         document = DocumentFactory(owner=owner)
 
         request = factory.put("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert not permission.has_object_permission(request, MagicMock(), document)
 
 
@@ -91,7 +91,7 @@ class TestIsOwner:
         document = DocumentFactory(owner=owner)
 
         request = factory.get("/")
-        request.user = owner
+        request.user = owner  # type: ignore[assignment]
         assert permission.has_object_permission(request, MagicMock(), document)
 
     def test_non_owner_no_permission(
@@ -103,7 +103,7 @@ class TestIsOwner:
         document = DocumentFactory(owner=owner)
 
         request = factory.get("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert not permission.has_object_permission(request, MagicMock(), document)
 
 
@@ -128,7 +128,7 @@ class TestIsSelf:
         user = UserFactory()
 
         request = factory.get("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert permission.has_object_permission(request, MagicMock(), user)
 
     def test_user_cannot_access_other_profile(
@@ -139,7 +139,7 @@ class TestIsSelf:
         other_user = UserFactory()
 
         request = factory.get("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert not permission.has_object_permission(request, MagicMock(), other_user)
 
 
@@ -174,7 +174,7 @@ class TestIsModerator:
         user.groups.add(moderator_group)
 
         request = factory.get("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert permission.has_permission(request, MagicMock())
 
     def test_non_moderator_no_permission(
@@ -184,7 +184,7 @@ class TestIsModerator:
         user = UserFactory()
 
         request = factory.get("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert not permission.has_permission(request, MagicMock())
 
     def test_anonymous_no_permission(
@@ -229,7 +229,7 @@ class TestIsModeratorOrOwner:
         document = DocumentFactory(owner=owner)
 
         request = factory.get("/")
-        request.user = moderator
+        request.user = moderator  # type: ignore[assignment]
         assert permission.has_object_permission(request, MagicMock(), document)
 
     def test_owner_has_permission(
@@ -240,7 +240,7 @@ class TestIsModeratorOrOwner:
         document = DocumentFactory(owner=owner)
 
         request = factory.get("/")
-        request.user = owner
+        request.user = owner  # type: ignore[assignment]
         assert permission.has_object_permission(request, MagicMock(), document)
 
     def test_non_owner_non_moderator_no_permission(
@@ -252,5 +252,5 @@ class TestIsModeratorOrOwner:
         document = DocumentFactory(owner=owner)
 
         request = factory.get("/")
-        request.user = user
+        request.user = user  # type: ignore[assignment]
         assert not permission.has_object_permission(request, MagicMock(), document)

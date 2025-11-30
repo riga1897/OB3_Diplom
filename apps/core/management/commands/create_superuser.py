@@ -73,11 +73,7 @@ class Command(BaseCommand):
             password=password,
         )
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Суперпользователь '{username}' создан!"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Суперпользователь '{username}' создан!"))
 
         if password == DEFAULT_PW:
             self.stdout.write(

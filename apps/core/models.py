@@ -8,7 +8,9 @@ from django.db import models
 class UUIDModel(models.Model):
     """Абстрактная модель с UUID в качестве первичного ключа."""
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(  # type: ignore[var-annotated]
+        primary_key=True, default=uuid.uuid4, editable=False
+    )
 
     class Meta:  # type: ignore[override]
         abstract = True
@@ -17,10 +19,12 @@ class UUIDModel(models.Model):
 class TimeStampedModel(models.Model):
     """Абстрактная модель с полями created_at и updated_at."""
 
-    created_at = models.DateTimeField(
+    created_at = models.DateTimeField(  # type: ignore[var-annotated]
         auto_now_add=True, db_index=True, verbose_name="Создано"
     )
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
+    updated_at = models.DateTimeField(  # type: ignore[var-annotated]
+        auto_now=True, verbose_name="Обновлено"
+    )
 
     class Meta:  # type: ignore[override]
         abstract = True
@@ -29,10 +33,10 @@ class TimeStampedModel(models.Model):
 class SoftDeleteModel(models.Model):
     """Абстрактная модель с функциональностью мягкого удаления."""
 
-    is_deleted = models.BooleanField(
+    is_deleted = models.BooleanField(  # type: ignore[var-annotated]
         default=False, db_index=True, verbose_name="Удалён"
     )
-    deleted_at = models.DateTimeField(
+    deleted_at = models.DateTimeField(  # type: ignore[var-annotated]
         null=True, blank=True, verbose_name="Дата удаления"
     )
 

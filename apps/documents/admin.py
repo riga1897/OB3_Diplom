@@ -104,7 +104,7 @@ class DocumentAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
             )
 
         return format_html(
-            '<span>{} {}</span>'
+            "<span>{} {}</span>"
             '<br><span style="color: {}; font-size: 11px;">{}</span>',
             icon,
             obj.original_filename,
@@ -149,7 +149,7 @@ class DocumentAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
             return format_html(
                 '<div style="padding: 16px; background: #f8d7da; border: 1px solid #f5c6cb; '
                 'border-radius: 4px; color: #721c24;">'
-                '<strong>{} {}</strong><br>'
+                "<strong>{} {}</strong><br>"
                 '<span style="font-size: 12px;">{}</span><br><br>'
                 '<span style="font-size: 11px; color: #856404;">Предпросмотр и скачивание заблокированы.</span>'
                 "</div>",

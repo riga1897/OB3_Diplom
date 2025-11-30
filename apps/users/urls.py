@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from .views import LogoutView, UserViewSet
+from .views import LogoutView, SessionTokenView, UserViewSet
 
 app_name = "users"
 
@@ -20,6 +20,7 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("token/session/", SessionTokenView.as_view(), name="token_session"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("", include(router.urls)),
 ]

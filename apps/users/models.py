@@ -8,8 +8,10 @@ class User(AbstractUser):
     """Расширенная модель пользователя с дополнительными полями."""
 
     email = models.EmailField(unique=True, verbose_name="Email")
-    phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")
-    bio = models.TextField(blank=True, verbose_name="О себе")
+    phone = models.CharField(  # type: ignore[var-annotated]
+        max_length=20, blank=True, verbose_name="Телефон"
+    )
+    bio = models.TextField(blank=True, verbose_name="О себе")  # type: ignore[var-annotated]
     avatar = models.ImageField(
         upload_to="avatars/%Y/%m/%d/",
         blank=True,
@@ -17,9 +19,12 @@ class User(AbstractUser):
         verbose_name="Аватар",
     )
 
-    # Временные метки
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлён")
+    created_at = models.DateTimeField(  # type: ignore[var-annotated]
+        auto_now_add=True, verbose_name="Создан"
+    )
+    updated_at = models.DateTimeField(  # type: ignore[var-annotated]
+        auto_now=True, verbose_name="Обновлён"
+    )
 
     class Meta:  # type: ignore[override]
         db_table = "users"

@@ -217,9 +217,9 @@ class TestDocumentAdminActions:
         """Create mock request with messages."""
         request = request_factory.post("/admin/documents/document/")
         request.user = admin_user
-        request.session = "session"
+        request.session = "session"  # type: ignore[assignment]
         messages = FallbackStorage(request)
-        request._messages = messages
+        request._messages = messages  # type: ignore[assignment]
         return request
 
     def test_approve_documents_action(
@@ -377,12 +377,14 @@ class TestDocumentAdminActions:
         request_factory: RequestFactory,
     ) -> None:
         """Test response_change handles _approve button."""
-        doc = cast(Document, DocumentFactory(owner=user, status=Document.Status.PENDING))
+        doc = cast(
+            Document, DocumentFactory(owner=user, status=Document.Status.PENDING)
+        )
 
         request = request_factory.post("/admin/documents/document/", {"_approve": "1"})
         request.user = admin_user
-        request.session = "session"
-        request._messages = FallbackStorage(request)
+        request.session = "session"  # type: ignore[assignment]
+        request._messages = FallbackStorage(request)  # type: ignore[assignment]
 
         with patch("apps.documents.tasks.send_user_notification_task") as mock_task:
             response = admin.response_change(request, doc)
@@ -401,12 +403,14 @@ class TestDocumentAdminActions:
         request_factory: RequestFactory,
     ) -> None:
         """Test response_change handles _reject button."""
-        doc = cast(Document, DocumentFactory(owner=user, status=Document.Status.PENDING))
+        doc = cast(
+            Document, DocumentFactory(owner=user, status=Document.Status.PENDING)
+        )
 
         request = request_factory.post("/admin/documents/document/", {"_reject": "1"})
         request.user = admin_user
-        request.session = "session"
-        request._messages = FallbackStorage(request)
+        request.session = "session"  # type: ignore[assignment]
+        request._messages = FallbackStorage(request)  # type: ignore[assignment]
 
         with patch("apps.documents.tasks.send_user_notification_task") as mock_task:
             response = admin.response_change(request, doc)
@@ -428,12 +432,14 @@ class TestDocumentAdminActions:
         user.is_superuser = False
         user.save()
 
-        doc = cast(Document, DocumentFactory(owner=user, status=Document.Status.PENDING))
+        doc = cast(
+            Document, DocumentFactory(owner=user, status=Document.Status.PENDING)
+        )
 
         request = request_factory.post("/admin/documents/document/", {"_approve": "1"})
         request.user = user
-        request.session = "session"
-        request._messages = FallbackStorage(request)
+        request.session = "session"  # type: ignore[assignment]
+        request._messages = FallbackStorage(request)  # type: ignore[assignment]
 
         with patch("apps.documents.tasks.send_user_notification_task") as mock_task:
             admin.response_change(request, doc)
@@ -488,8 +494,8 @@ class TestDocumentAdminActions:
 
         request = request_factory.get(f"/admin/documents/document/{doc.id}/change/")
         request.user = admin_user
-        request.session = "session"
-        request._messages = FallbackStorage(request)
+        request.session = "session"  # type: ignore[assignment]
+        request._messages = FallbackStorage(request)  # type: ignore[assignment]
 
         context: dict[str, Any] = {
             "adminform": MagicMock(),
@@ -530,12 +536,14 @@ class TestDocumentAdminActions:
         request_factory: RequestFactory,
     ) -> None:
         """Test response_change with no action buttons calls super."""
-        doc = cast(Document, DocumentFactory(owner=user, status=Document.Status.PENDING))
+        doc = cast(
+            Document, DocumentFactory(owner=user, status=Document.Status.PENDING)
+        )
 
         request = request_factory.post("/admin/documents/document/", {"_save": "1"})
         request.user = admin_user
-        request.session = "session"
-        request._messages = FallbackStorage(request)
+        request.session = "session"  # type: ignore[assignment]
+        request._messages = FallbackStorage(request)  # type: ignore[assignment]
 
         with patch.object(
             admin.__class__.__bases__[0],

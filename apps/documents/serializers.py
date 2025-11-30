@@ -101,7 +101,8 @@ class DocumentCreateSerializer(serializers.ModelSerializer[Document]):
         model = Document
         fields = ["file"]
 
-    def validate_file(self, value: UploadedFile) -> UploadedFile:
+    @staticmethod
+    def validate_file(value: UploadedFile) -> UploadedFile:
         """Валидация загружаемого файла (безопасность, тип и размер)."""
         validate_file_extension_safety(value)
         validate_file_type(value)

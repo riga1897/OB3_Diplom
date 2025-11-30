@@ -18,6 +18,7 @@ def get_settings_module() -> str:
 
     try:
         from decouple import config
+
         environment = config("ENVIRONMENT", default="development")
     except ImportError:
         environment = os.getenv("ENVIRONMENT", "development")

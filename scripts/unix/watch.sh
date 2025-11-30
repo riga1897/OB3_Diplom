@@ -1,9 +1,9 @@
 #!/bin/bash
 # Watch-режим: автоматическая проверка при изменении файлов
 # Требует: inotify-tools (устанавливается автоматически при первом запуске)
-# Использование: ./scripts/watch.sh
+# Использование: ./scripts/unix/watch.sh
 
-echo "👀 Watch-режим: отслеживание изменений в users/, lms/ и config/"
+echo "👀 Watch-режим: отслеживание изменений в apps/, config/ и tests/"
 echo "💡 При сохранении файла автоматически запустятся ruff и mypy"
 echo "⏸️  Для остановки нажмите Ctrl+C"
 echo ""
@@ -23,7 +23,7 @@ run_quick_checks() {
     echo ""
     
     echo "1️⃣  Ruff..."
-    if poetry run ruff check users/ lms/ config/; then
+    if poetry run ruff check apps/ config/ tests/; then
         echo "✅ Ruff: OK"
     else
         echo "❌ Ruff: есть ошибки"
@@ -31,7 +31,7 @@ run_quick_checks() {
     echo ""
     
     echo "2️⃣  Mypy..."
-    if poetry run mypy users/ lms/ config/; then
+    if poetry run mypy apps/ config/ tests/; then
         echo "✅ Mypy: OK"
     else
         echo "❌ Mypy: есть ошибки"
@@ -45,6 +45,6 @@ run_quick_checks() {
 check_and_install_inotify
 
 # Запуск отслеживания
-while inotifywait -r -e modify,create,delete users/ lms/ config/; do
+while inotifywait -r -e modify,create,delete apps/ config/ tests/; do
     run_quick_checks "$REPLY"
 done

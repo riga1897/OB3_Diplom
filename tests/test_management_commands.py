@@ -40,7 +40,7 @@ class TestCreateSuperuserCommand:
         User.objects.create_superuser(
             username="existingadmin",
             email="existing@example.com",
-            password="pass123",
+            password="pass123",  # noqa: S106
         )
 
         out = StringIO()
@@ -113,7 +113,7 @@ class TestLoadInitialDataCommand:
         User.objects.create_user(
             username="olduser",
             email="old@example.com",
-            password="pass123",
+            password="pass123",  # noqa: S106
         )
         assert User.objects.filter(username="olduser").exists()
 
@@ -237,10 +237,10 @@ class TestLoadInitialDataCommand:
 
         try:
             cmd = Command()
-            cmd.stdout = StringIO()
+            cmd.stdout = StringIO()  # type: ignore[assignment]
             cmd._truncate_tables(dry_run=False)
 
-            output = cmd.stdout.getvalue()
+            output = cmd.stdout.getvalue()  # type: ignore[union-attr]
             assert "Нет таблиц для очистки" in output
         finally:
             Command.EXCLUDED_APPS = original_excluded
@@ -263,10 +263,10 @@ class TestLoadInitialDataCommand:
 
         try:
             cmd = Command()
-            cmd.stdout = StringIO()
+            cmd.stdout = StringIO()  # type: ignore[assignment]
             cmd._reset_sequences(dry_run=False)
 
-            output = cmd.stdout.getvalue()
+            output = cmd.stdout.getvalue()  # type: ignore[union-attr]
             assert output == ""
         finally:
             Command.EXCLUDED_APPS = original_excluded
@@ -276,7 +276,7 @@ class TestLoadInitialDataCommand:
         from apps.core.management.commands.load_initial_data import Command
 
         cmd = Command()
-        cmd.stdout = StringIO()
+        cmd.stdout = StringIO()  # type: ignore[assignment]
 
         with patch("django.db.connection.cursor") as mock_cursor:
             mock_cursor.return_value.__enter__.return_value.execute.side_effect = (
@@ -284,7 +284,7 @@ class TestLoadInitialDataCommand:
             )
             cmd._truncate_tables(dry_run=False)
 
-        output = cmd.stdout.getvalue()
+        output = cmd.stdout.getvalue()  # type: ignore[union-attr]
         assert "ОШИБКА" in output
         assert "Test error" in output
 
@@ -293,7 +293,7 @@ class TestLoadInitialDataCommand:
         from apps.core.management.commands.load_initial_data import Command
 
         cmd = Command()
-        cmd.stdout = StringIO()
+        cmd.stdout = StringIO()  # type: ignore[assignment]
 
         with patch("django.db.connection.cursor") as mock_cursor:
             mock_cursor.return_value.__enter__.return_value.execute.side_effect = (
@@ -301,6 +301,6 @@ class TestLoadInitialDataCommand:
             )
             cmd._reset_sequences(dry_run=False)
 
-        output = cmd.stdout.getvalue()
+        output = cmd.stdout.getvalue()  # type: ignore[union-attr]
         assert "ПРОПУСК" in output
         assert "Sequence error" in output

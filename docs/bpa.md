@@ -13,7 +13,7 @@
 ## Дипломный проект: Сервис обработки загружаемых документов (OB3)
 
 **Студент:** Python Developer Course  
-**Дата:** 20 ноября 2025  
+**Дата:** 30 ноября 2025  
 **Направление:** Backend Development  
 
 ---
@@ -35,7 +35,7 @@
 - **API Documentation:** OpenAPI (Swagger)
 - **Аутентификация:** JWT (JSON Web Tokens)
 - **CORS:** Настройка кросс-доменных запросов
-- **Testing:** pytest, coverage ≥ 75%
+- **Testing:** pytest-django, coverage ≥ 95%
 
 ---
 
@@ -45,29 +45,46 @@
 
 #### 2.1.1 Структура проекта
 ```
-document_service/
-├── apps/
-│   ├── documents/          # Основное приложение
-│   │   ├── models.py       # Модели данных
-│   │   ├── serializers.py  # Сериализаторы DRF
-│   │   ├── views.py        # ViewSets и APIViews
-│   │   ├── permissions.py  # Кастомные permissions
-│   │   └── tests/          # Тесты приложения
-│   └── users/              # Управление пользователями
-├── config/                 # Конфигурация проекта
+ob3-document-processing-service/
+├── apps/                       # Django приложения
+│   ├── core/                   # Абстрактные модели, общие компоненты
+│   │   ├── models.py           # TimeStampedModel, OwnerMixin
+│   │   ├── cache.py            # CacheManager
+│   │   └── management/         # Management команды
+│   ├── documents/              # Обработка документов
+│   │   ├── models.py           # Document, ProcessingTask
+│   │   ├── serializers.py      # DocumentSerializer
+│   │   ├── views.py            # DocumentViewSet
+│   │   ├── permissions.py      # IsOwner, IsModerator
+│   │   ├── services.py         # Service Layer
+│   │   ├── tasks.py            # Celery tasks
+│   │   ├── file_types.py       # Категоризация файлов
+│   │   └── validators.py       # Валидаторы
+│   └── users/                  # Пользователи и аутентификация
+│       ├── models.py           # Custom User model
+│       └── views.py            # JWT endpoints
+├── config/                     # Настройки Django
 │   ├── settings/
-│   │   ├── base.py        # Базовые настройки
-│   │   ├── development.py # Development
-│   │   └── production.py  # Production
+│   │   ├── base.py             # Базовые настройки
+│   │   ├── development.py      # Development
+│   │   ├── staging.py          # Staging/Docker
+│   │   └── test.py             # Тестирование
+│   ├── celery.py               # Celery конфигурация
 │   ├── urls.py
 │   └── wsgi.py
-├── utils/                  # Утилиты
-├── requirements/
-│   ├── base.txt
-│   ├── dev.txt
-│   └── prod.txt
+├── tests/                      # Все тесты (pytest-django)
+│   ├── conftest.py             # Общие фикстуры
+│   ├── factories.py            # Factory Boy фабрики
+│   └── test_*.py               # Тестовые модули
+├── fixtures/                   # Начальные данные
+├── var/                        # Артефакты
+│   ├── media/                  # Загруженные документы
+│   ├── logs/                   # Логи приложения
+│   └── coverage/               # Coverage отчёты
+├── nginx/                      # Nginx конфигурация
 ├── docker-compose.yml
 ├── Dockerfile
+├── pyproject.toml              # Poetry зависимости
 └── README.md
 ```
 
@@ -555,15 +572,14 @@ class DocumentAPITest(APITestCase):
 
 #### 2.6.2 Покрытие тестами
 ```bash
-# Установить coverage
-pip install coverage
-
+# pytest-cov уже включен в зависимости проекта
 # Запустить тесты с coverage
-coverage run --source='.' manage.py test
-coverage report
-coverage html  # Генерация HTML отчета
+poetry run pytest --cov=apps --cov-report=html:var/coverage/htmlcov
 
-# Цель: покрытие >= 75%
+# Просмотр HTML-отчёта
+open var/coverage/htmlcov/index.html
+
+# Цель: покрытие >= 95% (минимум, настроен в pyproject.toml)
 ```
 
 ---
@@ -572,7 +588,7 @@ coverage html  # Генерация HTML отчета
 
 #### 2.7.1 Dockerfile
 ```dockerfile
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -581,16 +597,25 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка Python зависимостей
-COPY requirements/base.txt requirements/prod.txt ./requirements/
-RUN pip install --no-cache-dir -r requirements/prod.txt
+# Создаём пользователя ob3 с фиксированным UID 1000
+RUN groupadd -g 1000 ob3 && \
+    useradd -u 1000 -g ob3 -m -s /bin/bash ob3
+
+# Установка Poetry и зависимостей
+COPY pyproject.toml poetry.lock ./
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
+
+# Создаём структуру /app/var с правами ob3
+RUN mkdir -p /app/var/media /app/var/logs /app/var/coverage && \
+    chown -R ob3:ob3 /app/var
 
 # Копирование кода приложения
-COPY . .
+COPY --chown=ob3:ob3 . .
 
-# Создание пользователя для запуска приложения
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# Переключаемся на ob3
+USER ob3
 
 # Команда запуска
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
@@ -598,82 +623,103 @@ CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
 
 #### 2.7.2 docker-compose.yml
 ```yaml
-version: '3.8'
+x-app: &default-app
+  image: ob3-app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file: .env
+  volumes:
+    - ./var/media:/app/var/media
+    - ./var/logs:/app/var/logs
+    - ./var/coverage:/app/var/coverage
+  depends_on:
+    - postgres
+    - redis
 
 services:
-  db:
-    image: postgres:15-alpine
+  postgres:
+    image: postgres:16-alpine
     environment:
-      POSTGRES_DB: document_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ob3_documents
+      POSTGRES_USER: ob3_user
+      POSTGRES_PASSWORD: ob3_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ob3_user -d ob3_documents"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
-      - media_volume:/app/media
-    ports:
-      - "8000:8000"
-    environment:
-      - DEBUG=1
-      - DB_HOST=db
-      - DB_NAME=document_service
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
+    <<: *default-app
+    command: web  # entrypoint script handles migrations + gunicorn
+    expose:
+      - "8000"
   
-  celery:
-    build: .
-    command: celery -A config worker --loglevel=info
-    volumes:
-      - .:/app
-    environment:
-      - DB_HOST=db
-      - REDIS_URL=redis://redis:6379/0
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
     depends_on:
-      - db
-      - redis
+      - web
+  
+  celery_worker:
+    <<: *default-app
+    command: poetry run celery -A config worker -l info
+  
+  celery_beat:
+    <<: *default-app
+    command: poetry run celery -A config beat -l info
 
 volumes:
   postgres_data:
-  media_volume:
 ```
 
 ---
 
 ### 2.8 Code Quality и PEP8
 
-**Best Practices:**
+**Best Practices (OB3 стек):**
+- Использовать `ruff` для линтинга (заменяет Flake8 + Isort)
+- Использовать `mypy` для type checking (strict mode, 100% coverage)
 - Использовать `black` для форматирования
-- Использовать `flake8` для линтинга
-- Использовать `isort` для сортировки импортов
-- Использовать `mypy` для type checking
 
-```bash
-# .flake8
-[flake8]
-max-line-length = 88
-extend-ignore = E203, W503
-exclude = migrations, __pycache__, venv
+**Порядок выполнения линтеров:**
 
+| Инструмент | Назначение | Порядок |
+|------------|------------|---------|
+| **Ruff** | Linting + Isort | 1️⃣ Первый |
+| **Mypy** | Type checking | 2️⃣ Второй |
+| **Black** | Форматирование | 3️⃣ Третий |
+
+```toml
 # pyproject.toml
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["migrations", "__pycache__", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]  # Flake8 + isort + upgrades
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py312']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -683,16 +729,28 @@ exclude = '''
 )/
 '''
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 88
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+disallow_untyped_defs = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+```
 
-# Запуск проверок
-black .
-isort .
-flake8
-mypy .
+```bash
+# Запуск проверок (порядок важен!)
+# 1. RUFF - выполняется ПЕРВЫМ
+poetry run ruff check apps/ config/ tests/
+
+# 2. MYPY - проверка типов (strict mode)
+poetry run mypy apps config tests
+
+# 3. BLACK - форматирование кода
+poetry run black apps/ config/ tests/
+
+# Автоматическое исправление
+poetry run ruff check --fix apps/ config/ tests/
+poetry run black apps/ config/ tests/
 ```
 
 ---
@@ -711,7 +769,7 @@ mypy .
 
 **Конфигурация:**
 ```python
-# backend/config/settings/test.py
+# config/settings/test.py
 import os
 
 DATABASES = {
@@ -837,7 +895,7 @@ COPY --chown=ob3:ob3 . .
 # Все команды выполняются от имени ob3
 USER ob3
 
-CMD ["poetry", "run", "python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["poetry", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
 ```
 
 **Почему UID 1000:**
@@ -848,7 +906,7 @@ CMD ["poetry", "run", "python", "backend/manage.py", "runserver", "0.0.0.0:8000"
 
 **Последствия:**
 ```bash
-# На хосте (после docker-compose up):
+# На хосте (после docker compose up):
 ls -l var/media/
 # -rw-r--r-- 1 youruser yourgroup 1234 Nov 20 10:00 document.pdf
 # ✅ Файлы принадлежат вам, не root!
@@ -876,7 +934,7 @@ nano var/logs/django.log  # ✅ Работает без sudo
 # Windows требует --pool=solo (не поддерживается prefork)
 # docker-compose.yml:
 celery_worker:
-  command: poetry run celery -A backend.config worker --pool=solo --loglevel=info
+  command: poetry run celery -A config worker --pool=solo --loglevel=info
 ```
 
 **Docker Desktop:**
@@ -891,36 +949,39 @@ $env:DB_HOST="localhost"  # PowerShell
 poetry run pytest
 
 # Через Docker Compose (рекомендуется):
-docker-compose run --rm test
+docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
 ```
 
 ---
 
 #### 2.9.5 Testing Strategy: Coverage & Artifacts
 
-**pytest.ini:**
-```ini
-[pytest]
-DJANGO_SETTINGS_MODULE = backend.config.settings.test
-pythonpath = .
-testpaths = backend/tests
-addopts = 
+**pyproject.toml (pytest секция):**
+```toml
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = """
     -v
     --strict-markers
-    --cov=backend.apps
+    --cov=apps
     --cov-report=term-missing
-    --cov-report=html:/app/var/coverage/htmlcov
-    --cov-report=xml:/app/var/coverage/coverage.xml
-    --cov-fail-under=75
-markers =
-    unit: Unit tests
-    integration: Integration tests
+    --cov-report=html:var/coverage/htmlcov
+    --cov-report=xml:var/coverage/coverage.xml
+    --cov-fail-under=95
+"""
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests (можно пропускать)",
+]
 ```
 
 **Запуск тестов:**
 ```bash
 # Через Docker (рекомендуется)
-docker-compose run --rm test
+docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
 
 # Coverage report доступен в:
 # var/coverage/htmlcov/index.html
@@ -931,7 +992,7 @@ docker-compose run --rm test
 
 **Factory Boy для тестовых данных:**
 ```python
-# backend/tests/factories.py
+# tests/factories.py
 import factory
 from apps.users.models import User
 from apps.documents.models import Document
@@ -1009,7 +1070,7 @@ def test_document_metadata():
 - ✅ Unit tests
 - ✅ Integration tests
 - ✅ API tests
-- ✅ Coverage >= 75%
+- ✅ Coverage >= 95%
 
 ### Этап 8: Деплой
 - ✅ Production настройки
@@ -1021,45 +1082,48 @@ def test_document_metadata():
 
 ## 4. Полезные команды
 
-### Django
+### Django (Poetry)
 ```bash
-# Создать проект
-django-admin startproject config .
-
-# Создать приложение
-python manage.py startapp documents
-
 # Миграции
-python manage.py makemigrations
-python manage.py migrate
+poetry run python manage.py makemigrations
+poetry run python manage.py migrate
 
-# Создать суперпользователя
-python manage.py createsuperuser
+# Создать суперпользователя (OB3 management команда)
+poetry run python manage.py create_superuser
 
-# Запуск сервера
-python manage.py runserver
+# Загрузить начальные данные
+poetry run python manage.py load_initial_data
 
-# Запуск тестов
-python manage.py test
+# Запуск сервера (Django по умолчанию использует 8000)
+poetry run python manage.py runserver 0.0.0.0:8000
+# Или для Replit/production совместимости:
+# poetry run python manage.py runserver 0.0.0.0:5000
+
+# Запуск тестов (pytest-django)
+poetry run pytest
 
 # Сбор статики
-python manage.py collectstatic
+poetry run python manage.py collectstatic --noinput
 ```
 
 ### Docker
 ```bash
 # Сборка и запуск
-docker-compose up --build
+docker compose up -d --build
 
 # Остановка
-docker-compose down
+docker compose down
 
 # Просмотр логов
-docker-compose logs -f web
+docker compose logs -f web
 
 # Выполнение команд в контейнере
-docker-compose exec web python manage.py migrate
-docker-compose exec web python manage.py test
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py create_superuser
+docker compose exec web python manage.py load_initial_data
+
+# Тестирование (обязательно с флагом -e)
+docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
 ```
 
 ---
@@ -1084,9 +1148,10 @@ docker-compose exec web python manage.py test
 ### Качество кода
 - [ ] PEP8 соблюден
 - [ ] Код отформатирован (black)
-- [ ] Нет линтер ошибок (flake8)
-- [ ] Покрытие тестами >= 75%
-- [ ] Все тесты проходят
+- [ ] Нет линтер ошибок (ruff)
+- [ ] 100% type coverage (mypy strict)
+- [ ] Покрытие тестами >= 95%
+- [ ] Все 250 тестов проходят
 
 ### Документация
 - [ ] README.md заполнен

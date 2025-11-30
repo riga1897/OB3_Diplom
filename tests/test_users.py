@@ -255,9 +255,7 @@ class TestLogoutEndpoint:
 
         assert response.status_code == status.HTTP_205_RESET_CONTENT
         assert response.data["detail"] == "Выход выполнен успешно."
-        assert BlacklistedToken.objects.filter(
-            token__jti=refresh["jti"]
-        ).exists()
+        assert BlacklistedToken.objects.filter(token__jti=refresh["jti"]).exists()
 
     def test_logout_success_without_refresh_token(
         self, authenticated_client: APIClient
@@ -312,15 +310,11 @@ class TestLogoutEndpoint:
         refresh_token = str(refresh)
 
         logout_url = reverse("users:logout")
-        authenticated_client.post(
-            logout_url, {"refresh": refresh_token}, format="json"
-        )
+        authenticated_client.post(logout_url, {"refresh": refresh_token}, format="json")
 
         refresh_url = reverse("users:token_refresh")
         client = APIClient()
-        response = client.post(
-            refresh_url, {"refresh": refresh_token}, format="json"
-        )
+        response = client.post(refresh_url, {"refresh": refresh_token}, format="json")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -340,3 +334,66 @@ class TestLogoutEndpoint:
 
         assert response.status_code == status.HTTP_205_RESET_CONTENT
         assert response.data["detail"] == "Выход выполнен успешно."
+
+
+@pytest.mark.django_db
+class TestSessionTokenEndpoint:
+    """Tests for session-based JWT token endpoint."""
+
+    def test_session_token_success(
+        self, authenticated_client: APIClient, user: User
+    ) -> None:
+        """Test getting JWT token for session-authenticated user."""
+        url = reverse("users:token_session")
+
+        response = authenticated_client.post(url, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "access" in response.data
+        assert "refresh" in response.data
+        assert len(response.data["access"]) > 50
+        assert len(response.data["refresh"]) > 50
+
+    def test_session_token_requires_authentication(self, api_client: APIClient) -> None:
+        """Test that session token endpoint requires authentication."""
+        url = reverse("users:token_session")
+
+        response = api_client.post(url, format="json")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_session_token_returns_valid_tokens(
+        self, authenticated_client: APIClient, user: User
+    ) -> None:
+        """Test that returned tokens are valid and can be verified."""
+        url = reverse("users:token_session")
+        response = authenticated_client.post(url, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+
+        access_token = response.data["access"]
+        verify_url = reverse("users:token_verify")
+        verify_response = authenticated_client.post(
+            verify_url, {"token": access_token}, format="json"
+        )
+
+        assert verify_response.status_code == status.HTTP_200_OK
+
+    def test_session_token_refresh_works(
+        self, authenticated_client: APIClient, user: User
+    ) -> None:
+        """Test that returned refresh token can get new access token."""
+        url = reverse("users:token_session")
+        response = authenticated_client.post(url, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+
+        refresh_token = response.data["refresh"]
+        refresh_url = reverse("users:token_refresh")
+        client = APIClient()
+        refresh_response = client.post(
+            refresh_url, {"refresh": refresh_token}, format="json"
+        )
+
+        assert refresh_response.status_code == status.HTTP_200_OK
+        assert "access" in refresh_response.data

@@ -149,9 +149,7 @@ class TestDocumentSerializers:
             return mime_type == "text/plain"
 
         monkeypatch.setattr(filetype, "guess", mock_guess)
-        monkeypatch.setattr(
-            "apps.documents.validators._is_text_content", mock_is_text
-        )
+        monkeypatch.setattr("apps.documents.validators._is_text_content", mock_is_text)
 
         test_file = SimpleUploadedFile(
             "test.pdf",

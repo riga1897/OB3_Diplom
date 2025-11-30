@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
 from rest_framework_simplejwt.token_blacklist.models import (
     BlacklistedToken,
     OutstandingToken,

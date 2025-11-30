@@ -150,9 +150,7 @@ class TestDocumentModel:
         assert "запрещена" in str(exc_info.value)
         assert ".exe" in str(exc_info.value)
 
-    def test_document_save_blocks_dangerous_file_name(
-        self, db: Any, user: Any
-    ) -> None:
+    def test_document_save_blocks_dangerous_file_name(self, db: Any, user: Any) -> None:
         """Test save() raises ValidationError for dangerous file.name."""
         from unittest.mock import MagicMock
 

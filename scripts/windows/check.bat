@@ -1,30 +1,30 @@
 @echo off
 REM Скрипт для запуска всех проверок качества кода
-REM Использование: scripts\windows\check.bat или poetry run check
+REM Использование: scripts\windows\check.bat
 
 echo 🔍 Запуск проверок качества кода (Ruff + Mypy + Black)...
 echo.
 
 echo 1️⃣  Ruff (проверка кода + isort)...
-poetry run ruff check backend/
+poetry run ruff check apps/ config/ tests/
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo ✅ Ruff: OK
 echo.
 
 echo 2️⃣  Mypy (проверка типов - 100%% coverage)...
-cd backend && poetry run mypy apps config tests && cd ..
+poetry run mypy apps/ config/ tests/
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo ✅ Mypy: OK
 echo.
 
 echo 3️⃣  Black (проверка форматирования)...
-poetry run black --check backend/
+poetry run black --check apps/ config/ tests/
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo ✅ Black: OK
 echo.
 
 echo 4️⃣  Django system check...
-cd backend && poetry run python manage.py check && cd ..
+poetry run python manage.py check
 if %errorlevel% neq 0 exit /b %errorlevel%
 echo ✅ Django check: OK
 echo.

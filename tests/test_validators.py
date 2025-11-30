@@ -1,6 +1,5 @@
 """Тесты для валидаторов документов."""
 
-from io import BytesIO
 from typing import Any
 
 from django.core.exceptions import ValidationError
@@ -21,7 +20,7 @@ class TestIsTextContent:
 
     def test_utf8_text_returns_true(self) -> None:
         """UTF-8 текст должен возвращать True."""
-        data = "Привет, мир! Hello, world!".encode("utf-8")
+        data = "Привет, мир! Hello, world!".encode()
         assert _is_text_content(data) is True
 
     def test_ascii_text_returns_true(self) -> None:

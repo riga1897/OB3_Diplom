@@ -265,13 +265,13 @@ class TestDocumentFilters:
     def setup(self, db: Any) -> None:
         """Setup test data."""
         self.user: Any = UserFactory()
-        self.pending_doc = DocumentFactory(
+        self.pending_doc: Any = DocumentFactory(
             owner=self.user, status=Document.Status.PENDING
         )
-        self.approved_doc = DocumentFactory(
+        self.approved_doc: Any = DocumentFactory(
             owner=self.user, status=Document.Status.APPROVED
         )
-        self.rejected_doc = DocumentFactory(
+        self.rejected_doc: Any = DocumentFactory(
             owner=self.user, status=Document.Status.REJECTED
         )
 

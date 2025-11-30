@@ -6,7 +6,9 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 class RussianOrderingFilter(OrderingFilter):
     """Фильтр сортировки с русскими описаниями."""
 
-    ordering_description = "Поле для сортировки результатов. Используйте '-' для сортировки по убыванию."
+    ordering_description = (
+        "Поле для сортировки результатов. Используйте '-' для сортировки по убыванию."
+    )
 
 
 class RussianSearchFilter(SearchFilter):
