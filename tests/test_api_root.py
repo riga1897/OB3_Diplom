@@ -111,3 +111,28 @@ class TestAPIRoot:
         data: dict[str, Any] = response.json()
         assert "documents" in data
         assert "auth" in data
+
+    def test_api_root_authenticated_user_sees_session_token(
+        self, authenticated_client: APIClient
+    ) -> None:
+        """Аутентифицированный пользователь видит session_token в auth."""
+        response = authenticated_client.get("/api/")
+
+        assert response.status_code == status.HTTP_200_OK
+        data: dict[str, Any] = response.json()
+
+        assert "auth" in data
+        assert "session_token" in data["auth"]
+        assert "/api/users/token/session/" in data["auth"]["session_token"]
+
+    def test_api_root_anonymous_user_no_session_token(
+        self, api_client: APIClient
+    ) -> None:
+        """Анонимный пользователь не видит session_token в auth."""
+        response = api_client.get("/api/")
+
+        assert response.status_code == status.HTTP_200_OK
+        data: dict[str, Any] = response.json()
+
+        assert "auth" in data
+        assert "session_token" not in data["auth"]

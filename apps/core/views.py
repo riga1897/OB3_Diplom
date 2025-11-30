@@ -50,7 +50,7 @@ from rest_framework.response import Response
 )
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def health_check(_request: Request) -> Response:
+def health_check(request: Request) -> Response:
     """
     Эндпоинт проверки здоровья сервиса для мониторинга и балансировщиков нагрузки.
 
@@ -212,6 +212,12 @@ def api_root(request: Request, response_format: str | None = None) -> Response:
             "users:token_verify", request=request, format=response_format
         ),
     }
+
+    # Добавляем session_token только для аутентифицированных пользователей
+    if request.user.is_authenticated:
+        endpoints["auth"]["session_token"] = reverse(
+            "users:token_session", request=request, format=response_format
+        )
 
     # Добавляем документацию API
     endpoints["documentation"] = {
