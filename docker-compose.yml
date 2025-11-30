@@ -5,9 +5,11 @@
 name: ob3
 # Архитектура зависимостей:
 #   postgres ──┐
-#              ├─→ web (миграции + collectstatic) ─┬─→ nginx
-#   redis ─────┘                                   ├─→ celery_worker
-#                                                  └─→ celery_beat
+#              ├─→ web (ob3-app, миграции + collectstatic) ─┬─→ nginx
+#   redis ─────┘                                            ├─→ celery_worker (ob3-app)
+#                                                           └─→ celery_beat (ob3-app)
+#
+# Один образ ob3-app используется для web, celery_worker, celery_beat
 #
 # Запуск: docker compose up -d
 # Остановка: docker compose down
@@ -69,7 +71,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: web
+    image: ob3-app
     container_name: ob3_web
     command: web
     volumes:
@@ -113,10 +115,7 @@ services:
   # Ждёт готовности web (миграции применены)
   # ============================================
   celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: celery
+    image: ob3-app
     container_name: ob3_celery_worker
     command: worker
     volumes:
@@ -146,10 +145,7 @@ services:
   # Ждёт готовности web (миграции применены)
   # ============================================
   celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: celery
+    image: ob3-app
     container_name: ob3_celery_beat
     command: beat
     volumes:
