@@ -33,6 +33,7 @@ gunicorn = "^23.0.0"
 # Чистый Python, без системных зависимостей, работает на всех платформах
 filetype = "^1.2.0"
 poetry-core = "^2.2.1"
+celery = "^5.5.3"
 
 [tool.poetry.group.lint.dependencies]
 ruff = "^0.1.14"
@@ -43,5 +44,5 @@ djangorestframework-stubs = "^3.14.5"
 types-redis = "^4.6.0"
 pre-commit = "^3.6.0"
 pyright = "^1.1.407"
-
+celery-types = "^0.23.0"
 
