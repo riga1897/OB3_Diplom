@@ -1,0 +1,75 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        .document-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .document-action-btn {
+            min-width: 160px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .document-action-btn.approve {
+            background-color: #28a745;
+            color: white;
+        }
+        .document-action-btn.approve:hover {
+            background-color: #218838;
+        }
+        .document-action-btn.reject {
+            background-color: #dc3545;
+            color: white;
+        }
+        .document-action-btn.reject:hover {
+            background-color: #c82333;
+        }
+    </style>
+{% endblock %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url 'admin:documents_document_changelist' %}">← Назад</a>
+    </li>
+    {{ block.super }}
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+    {% if original and original.status == "pending" and request.user.is_superuser %}
+        {% if original.is_file_dangerous %}
+            <div class="submit-row" style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 16px; margin-top: 10px;">
+                <strong style="color: #721c24;">🔴 Действия заблокированы</strong>
+                <p style="color: #721c24; margin: 8px 0 0 0; font-size: 13px;">
+                    Этот файл имеет потенциально опасное расширение. 
+                    Утверждение и предпросмотр недоступны из соображений безопасности.
+                </p>
+            </div>
+        {% else %}
+            <div class="document-actions">
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="_approve" value="approve" class="document-action-btn approve">
+                        ✅ Подтвердить
+                    </button>
+                </form>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="_reject" value="reject" class="document-action-btn reject">
+                        ❌ Отклонить
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
