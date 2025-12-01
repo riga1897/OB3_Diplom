@@ -274,7 +274,7 @@ docker compose exec web python manage.py load_initial_data
 
 | Метрика | Значение |
 |---------|----------|
-| Тесты | 250 |
+| Тесты | 256 |
 | Покрытие | 100% |
 | Минимум | 95% |
 
@@ -415,7 +415,7 @@ def get_documents(user_id: int) -> QuerySet["Document"]:
 ### Development (без Celery)
 
 ```bash
-poetry run python manage.py runserver 0.0.0.0:5000
+poetry run python manage.py runserver 0.0.0.0:8000
 ```
 
 ### Development (с Celery)
@@ -434,7 +434,7 @@ poetry run celery -A config worker -l info              # Linux/macOS
 poetry run celery -A config beat -l info
 
 # Терминал 4: Django Server
-poetry run python manage.py runserver 0.0.0.0:5000
+poetry run python manage.py runserver 0.0.0.0:8000
 ```
 
 ### Проверка работоспособности
@@ -456,27 +456,27 @@ poetry run celery -A config inspect active
 
 | Сервис | URL |
 |--------|-----|
-| Swagger UI | http://127.0.0.1:5000/api/schema/swagger-ui/ |
-| ReDoc | http://127.0.0.1:5000/api/schema/redoc/ |
-| OpenAPI Schema | http://127.0.0.1:5000/api/schema/ |
-| Django Admin | http://127.0.0.1:5000/admin/ |
-| API Root | http://127.0.0.1:5000/api/ |
-| Health Check | http://127.0.0.1:5000/health/ |
+| Swagger UI | http://127.0.0.1:8000/api/schema/swagger-ui/ |
+| ReDoc | http://127.0.0.1:8000/api/schema/redoc/ |
+| OpenAPI Schema | http://127.0.0.1:8000/api/schema/ |
+| Django Admin | http://127.0.0.1:8000/admin/ |
+| API Root | http://127.0.0.1:8000/api/ |
+| Health Check | http://127.0.0.1:8000/health/ |
 
 ### JWT аутентификация
 
 ```bash
 # Получение токенов
-curl -X POST http://localhost:5000/api/users/token/ \
+curl -X POST http://localhost:8000/api/users/token/ \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "password"}'
 
 # Использование токена
-curl -X GET http://localhost:5000/api/documents/ \
+curl -X GET http://localhost:8000/api/documents/ \
   -H "Authorization: Bearer <access_token>"
 
 # Обновление токена
-curl -X POST http://localhost:5000/api/users/token/refresh/ \
+curl -X POST http://localhost:8000/api/users/token/refresh/ \
   -H "Content-Type: application/json" \
   -d '{"refresh": "<refresh_token>"}'
 ```

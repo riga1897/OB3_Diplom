@@ -50,6 +50,10 @@ CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=False, cast=bool)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
+# Cookie SameSite: "Lax" для HTTP (Docker), переопределяет "None" из base.py
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
 # ============================================
 # Email (консольный бэкенд по умолчанию)
 # ============================================

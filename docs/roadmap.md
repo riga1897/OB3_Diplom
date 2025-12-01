@@ -3,7 +3,7 @@
 <div align="center">
 
 ![Status](https://img.shields.io/badge/Status-100%25%20Complete-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-250-success)
+![Tests](https://img.shields.io/badge/Tests-256-success)
 ![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![Django](https://img.shields.io/badge/Django-5.2-green)
@@ -58,7 +58,7 @@
 | **Документация** | README.md + Swagger | README + Swagger/ReDoc | ✅ |
 | **Качество кода** | PEP8 | Ruff + Black + Mypy | ✅ |
 | **Git репозиторий** | Удалённый репозиторий | GitHub | ✅ |
-| **Тестирование** | Coverage ≥ 75% | **100%** (250 тестов) | ✅ |
+| **Тестирование** | Coverage ≥ 75% | **100%** (256 теста) | ✅ |
 
 ---
 
@@ -69,7 +69,7 @@
 | Критерий | Требование | Факт | Статус |
 |----------|------------|------|--------|
 | Coverage | ≥ 75% | **100%** | ✅ Превышено |
-| Тесты | Должны проходить | 250 passed | ✅ |
+| Тесты | Должны проходить | 256 passed | ✅ |
 | PEP8 | Соблюдение стандартов | Ruff 0 ошибок | ✅ |
 | Типизация | — | Mypy strict 100% | ✅ Бонус |
 | Docker | Контейнеризация | 6 контейнеров | ✅ |
@@ -90,6 +90,7 @@
 | ⏰ **Celery Beat** | Периодические задачи (cleanup, reports) |
 | 📁 **File validation** | ~120 разрешённых / ~70 заблокированных расширений |
 | 🔄 **Management commands** | create_superuser, load_initial_data |
+| 🔑 **SessionTokenView** | JWT токены для сессионных пользователей |
 
 ---
 
@@ -108,7 +109,7 @@
 | **Celery** | 100% | Worker, Beat, 5 tasks, retry механизмы |
 | **Email** | 100% | Admin notification, User notification |
 | **Django Admin** | 100% | Русская локализация, Quick actions, CSS |
-| **Тестирование** | 100% | 250 тестов, 100% coverage |
+| **Тестирование** | 100% | 256 теста, 100% coverage |
 | **Code Quality** | 100% | Ruff, Mypy, Black, Pyright, Pre-commit |
 | **Документация** | 100% | README, DEVELOPERS, DOCKER_SETUP, Swagger |
 | **Staging Docker** | 100% | 6 контейнеров, nginx, health checks |
@@ -296,6 +297,9 @@ def extract_document_text_task(document_id: str) -> dict:
 
 | Дата | Изменение |
 |------|-----------|
+| **30.11.2025** | Cookie SameSite fix: SESSION_COOKIE_SAMESITE='Lax' в staging.py для Docker HTTP login |
+| **30.11.2025** | load_initial_data fix: set_password() через make_password() + filter().update(), 5 новых тестов (261 total), удалён password hash из фикстур |
+| **30.11.2025** | SessionTokenView, русские описания JWT endpoints, API Root с условным session_token, документация (порты 8000, фикстуры Docker, Troubleshooting) |
 | **28.11.2025** | Staging Docker завершён, тесты для cache.py, документация финализирована |
 | **28.11.2025** | Fixtures (users.json, documents.json), management commands (create_superuser, load_initial_data) |
 | **28.11.2025** | Изоляция тестовых файлов в var/media/tests/, автоочистка |
@@ -321,7 +325,7 @@ def extract_document_text_task(document_id: str) -> dict:
 | Метрика | Значение |
 |---------|----------|
 | **Строк кода** | ~5000 |
-| **Тестов** | 250 |
+| **Тестов** | 256 |
 | **Coverage** | 100% |
 | **Файлов Python** | ~50 |
 | **Docker контейнеров** | 6 |
@@ -339,6 +343,6 @@ def extract_document_text_task(document_id: str) -> dict:
 
 **Курс:** Python Developer
 
-**Дата завершения:** 28 ноября 2025
+**Дата завершения:** 30 ноября 2025
 
 </div>

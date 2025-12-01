@@ -9,7 +9,7 @@
 ![Redis](https://img.shields.io/badge/Redis-7-red?logo=redis&logoColor=white)
 ![Celery](https://img.shields.io/badge/Celery-5.5-green?logo=celery&logoColor=white)
 ![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-250-success)
+![Tests](https://img.shields.io/badge/Tests-261-success)
 
 **Django REST API сервис для автоматической обработки, классификации и валидации документов**
 
@@ -40,11 +40,11 @@
 
 **OB3 Document Processing Service** — backend-сервис для автоматизированной обработки документов различных форматов. Разработан как дипломный проект курса Python Developer.
 
-| | |
-|---|---|
-| **Студент** | Python Developer Course |
+| |                           |
+|---|---------------------------|
+| **Студент** | Габитов Ринат             |
 | **Направление** | Backend Development (OB3) |
-| **Дата** | Ноябрь 2025 |
+| **Дата** | Декабрь 2025              |
 
 ---
 
@@ -117,7 +117,7 @@ ob3-document-processing-service/
 │   ├── settings/                  # Settings (base, development, staging, test)
 │   └── celery.py                  # Конфигурация Celery
 ├── fixtures/                      # Фикстуры для начальных данных
-├── tests/                         # Тесты (pytest-django, 250 тестов)
+├── tests/                         # Тесты (pytest-django, 261 тест)
 ├── docs/                          # Документация
 ├── var/                           # Артефакты (media, logs, coverage)
 ├── nginx/                         # Конфигурация Nginx
@@ -222,8 +222,12 @@ docker compose exec web python manage.py load_initial_data
 ### Аутентификация
 
 ```http
-POST /api/users/token/          # Получить JWT токен
-POST /api/users/token/refresh/  # Обновить JWT токен
+POST /api/register/                  # Регистрация нового пользователя
+POST /api/users/token/               # Получить JWT токен (логин/пароль)
+POST /api/users/token/refresh/       # Обновить JWT токен
+POST /api/users/token/verify/        # Проверить валидность токена
+POST /api/users/token/session/       # Получить JWT для сессионного пользователя
+POST /api/users/logout/              # Выход (blacklist refresh токена)
 ```
 
 ### Документы
@@ -272,7 +276,7 @@ curl -X POST http://localhost/api/documents/ \
 
 | Метрика | Значение |
 |---------|----------|
-| Тесты | 250 |
+| Тесты | 256 |
 | Покрытие | 100% |
 | Фреймворк | pytest-django |
 
@@ -334,7 +338,7 @@ poetry run python manage.py migrate
 poetry run python manage.py create_superuser
 
 # Запустить сервер
-poetry run python manage.py runserver 0.0.0.0:5000
+poetry run python manage.py runserver 0.0.0.0:8000
 ```
 
 ### Management команды

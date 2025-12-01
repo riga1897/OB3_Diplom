@@ -304,3 +304,74 @@ class TestLoadInitialDataCommand:
         output = cmd.stdout.getvalue()  # type: ignore[union-attr]
         assert "ПРОПУСК" in output
         assert "Sequence error" in output
+
+    def test_load_initial_data_users_can_authenticate(self, db: None) -> None:
+        """Пользователи из фикстур могут аутентифицироваться."""
+        from django.contrib.auth import authenticate
+
+        call_command("load_initial_data", stdout=StringIO())
+
+        admin = authenticate(username="admin", password="admin123")  # noqa: S106
+        user = authenticate(username="user", password="user123")  # noqa: S106
+
+        assert admin is not None
+        assert admin.is_superuser
+        assert user is not None
+        assert not user.is_superuser
+
+        admin_obj = User.objects.get(username="admin")
+        user_obj = User.objects.get(username="user")
+        assert admin_obj.check_password("admin123")  # noqa: S106
+        assert user_obj.check_password("user123")  # noqa: S106
+
+    def test_load_initial_data_sets_passwords_output(self, db: None) -> None:
+        """Команда выводит информацию об установке паролей."""
+        out = StringIO()
+        call_command("load_initial_data", stdout=out)
+
+        output = out.getvalue()
+        assert "Установка паролей" in output
+        assert "[OK] admin" in output
+        assert "[OK] user" in output
+
+    def test_load_initial_data_custom_passwords(self, db: None) -> None:
+        """Кастомные пароли через аргументы командной строки."""
+        from django.contrib.auth import authenticate
+
+        call_command(
+            "load_initial_data",
+            admin_password="custom_admin",  # noqa: S106
+            user_password="custom_user",  # noqa: S106
+            stdout=StringIO(),
+        )
+
+        admin = authenticate(username="admin", password="custom_admin")  # noqa: S106
+        user = authenticate(username="user", password="custom_user")  # noqa: S106
+
+        assert admin is not None
+        assert user is not None
+
+    def test_load_initial_data_dry_run_passwords(self, db: None) -> None:
+        """Dry-run не устанавливает пароли."""
+        out = StringIO()
+        call_command("load_initial_data", dry_run=True, stdout=out)
+
+        output = out.getvalue()
+        assert "[DRY-RUN] admin → установка пароля" in output
+        assert "[DRY-RUN] user → установка пароля" in output
+
+    def test_set_user_passwords_user_not_found(self, db: None) -> None:
+        """Обработка случая когда пользователь не найден."""
+        from apps.core.management.commands.load_initial_data import Command
+
+        cmd = Command()
+        cmd.stdout = StringIO()  # type: ignore[assignment]
+        cmd._set_user_passwords(
+            dry_run=False,
+            admin_password="pass123",  # noqa: S106
+            user_password="pass456",  # noqa: S106
+        )
+
+        output = cmd.stdout.getvalue()  # type: ignore[union-attr]
+        assert "[ПРОПУСК] admin — не найден" in output
+        assert "[ПРОПУСК] user — не найден" in output

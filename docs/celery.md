@@ -110,7 +110,7 @@ poetry run celery -A config beat -l info
 #### Терминал 4: Django Server
 
 ```bash
-poetry run python manage.py runserver 0.0.0.0:5000
+poetry run python manage.py runserver 0.0.0.0:8000
 ```
 
 ### Локальная разработка (без Redis)

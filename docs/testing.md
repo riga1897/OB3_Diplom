@@ -4,7 +4,7 @@
 
 ![pytest](https://img.shields.io/badge/pytest-8.0+-blue?logo=pytest&logoColor=white)
 ![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-250-success)
+![Tests](https://img.shields.io/badge/Tests-256-success)
 
 **Руководство по тестированию OB3 Document Processing Service**
 
@@ -84,6 +84,28 @@ docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest -k
 docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest -n auto
 ```
 
+### Загрузка фикстур в Docker
+
+```bash
+# Загрузка начальных данных (очищает БД + загружает фикстуры)
+docker compose exec web python manage.py load_initial_data
+
+# Предпросмотр без выполнения (dry-run)
+docker compose exec web python manage.py load_initial_data --dry-run
+```
+
+**Доступные фикстуры:**
+
+| Файл | Содержимое |
+|------|------------|
+| `fixtures/users.json` | Пользователи: `admin` (superuser), `user` (обычный) |
+| `fixtures/documents.json` | 6 документов: 2 approved, 2 pending, 2 rejected |
+
+**Что делает команда:**
+1. Очищает все таблицы приложений (TRUNCATE CASCADE)
+2. Сбрасывает sequences (счётчики ID)
+3. Загружает фикстуры в правильном порядке (users → documents)
+
 ### Локально (development)
 
 ```bash
@@ -162,7 +184,7 @@ start var/coverage/htmlcov/index.html
 ### Получение JWT токена
 
 ```bash
-curl -X POST http://0.0.0.0:5000/api/users/token/ \
+curl -X POST http://0.0.0.0:8000/api/users/token/ \
   -H "Content-Type: application/json" \
   -d '{"username": "testuser", "password": "testpass123"}'
 ```
@@ -178,7 +200,7 @@ curl -X POST http://0.0.0.0:5000/api/users/token/ \
 ### Загрузка документа
 
 ```bash
-curl -X POST http://0.0.0.0:5000/api/documents/ \
+curl -X POST http://0.0.0.0:8000/api/documents/ \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -F "file=@/path/to/document.pdf"
 ```
@@ -187,7 +209,7 @@ curl -X POST http://0.0.0.0:5000/api/documents/ \
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
-  "file": "http://0.0.0.0:5000/media/documents/2025/11/26/document.pdf",
+  "file": "http://0.0.0.0:8000/media/documents/2025/11/26/document.pdf",
   "original_filename": "document.pdf",
   "file_type": "pdf",
   "status": "pending",
@@ -198,7 +220,7 @@ curl -X POST http://0.0.0.0:5000/api/documents/ \
 ### Список документов
 
 ```bash
-curl -X GET http://0.0.0.0:5000/api/documents/ \
+curl -X GET http://0.0.0.0:8000/api/documents/ \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -206,19 +228,19 @@ curl -X GET http://0.0.0.0:5000/api/documents/ \
 
 ```bash
 # По статусу
-curl "http://0.0.0.0:5000/api/documents/?status=pending" \
+curl "http://0.0.0.0:8000/api/documents/?status=pending" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 # По типу файла
-curl "http://0.0.0.0:5000/api/documents/?file_type=pdf" \
+curl "http://0.0.0.0:8000/api/documents/?file_type=pdf" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 # Поиск по имени
-curl "http://0.0.0.0:5000/api/documents/?search=contract" \
+curl "http://0.0.0.0:8000/api/documents/?search=contract" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 # Сортировка
-curl "http://0.0.0.0:5000/api/documents/?ordering=-created_at" \
+curl "http://0.0.0.0:8000/api/documents/?ordering=-created_at" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -229,12 +251,12 @@ curl "http://0.0.0.0:5000/api/documents/?ordering=-created_at" \
 pip install httpie
 
 # Получение токена
-http POST http://0.0.0.0:5000/api/users/token/ \
+http POST http://0.0.0.0:8000/api/users/token/ \
   username=testuser \
   password=testpass123
 
 # Загрузка документа
-http -f POST http://0.0.0.0:5000/api/documents/ \
+http -f POST http://0.0.0.0:8000/api/documents/ \
   Authorization:"Bearer YOUR_ACCESS_TOKEN" \
   file@/path/to/document.pdf
 ```
@@ -419,8 +441,7 @@ find tests apps -name '*.py' | entr poetry run pytest --reuse-db -m unit
 
 ## 🔍 Troubleshooting
 
-<details>
-<summary><b>Тесты медленные</b></summary>
+### Тесты медленные
 
 ```bash
 # Используйте --reuse-db
@@ -433,10 +454,7 @@ poetry run pytest -n auto --reuse-db
 poetry run pytest -m "not slow"
 ```
 
-</details>
-
-<details>
-<summary><b>Тесты падают из-за БД</b></summary>
+### Тесты падают из-за БД
 
 ```bash
 # Пересоздайте БД
@@ -446,10 +464,7 @@ poetry run pytest --create-db
 poetry run pytest --cache-clear
 ```
 
-</details>
-
-<details>
-<summary><b>Coverage не сохраняется в Docker</b></summary>
+### Coverage не сохраняется в Docker
 
 ```bash
 # Проверьте что директория существует
@@ -462,10 +477,7 @@ ls -la var/coverage/
 docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
 ```
 
-</details>
-
-<details>
-<summary><b>Тесты файлов не удаляются</b></summary>
+### Тесты файлов не удаляются
 
 Тестовые файлы изолированы в `var/media/tests/` и автоматически удаляются через pytest fixture `clean_test_media_files`.
 
@@ -478,8 +490,6 @@ def clean_test_media_files():
     if test_media.exists():
         shutil.rmtree(test_media)
 ```
-
-</details>
 
 ---
 
@@ -507,21 +517,21 @@ def clean_test_media_files():
 docker compose exec -e DJANGO_SETTINGS_MODULE=config.settings.test web pytest
 
 # 2. Code quality
-docker compose exec web ruff check apps/
+docker compose exec web ruff check apps/ config/ tests/
 docker compose exec web mypy apps config tests
-docker compose exec web black --check apps/
+docker compose exec web black --check apps/ config/ tests/
 ```
 
 ### Локально
 
 ```bash
 # 1. Форматирование
-poetry run ruff check --fix apps/
-poetry run black apps/
+poetry run ruff check --fix apps/ config/ tests/
+poetry run black apps/ config/ tests/
 
 # 2. Проверка типов
 poetry run mypy apps config tests
-poetry run ruff check apps/
+poetry run ruff check apps/ config/ tests/
 
 # 3. Тесты
 poetry run pytest
@@ -531,6 +541,6 @@ poetry run pytest
 
 <div align="center">
 
-**Последнее обновление:** 28 ноября 2025
+**Последнее обновление:** 30 ноября 2025
 
 </div>
