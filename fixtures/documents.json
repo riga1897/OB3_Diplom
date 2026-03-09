@@ -1,0 +1,110 @@
+[
+  {
+    "model": "documents.document",
+    "pk": "11111111-1111-1111-1111-111111111111",
+    "fields": {
+      "owner": 1,
+      "file": "documents/2025/01/01/contract.pdf",
+      "file_type": "pdf",
+      "file_size": 1875,
+      "status": "approved",
+      "original_filename": "Договор_2025.pdf",
+      "rejection_reason": "",
+      "reviewed_at": "2025-01-02T10:00:00Z",
+      "created_at": "2025-01-01T09:00:00Z",
+      "updated_at": "2025-01-02T10:00:00Z",
+      "is_deleted": false,
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "documents.document",
+    "pk": "22222222-2222-2222-2222-222222222222",
+    "fields": {
+      "owner": 1,
+      "file": "documents/2025/01/01/report.docx",
+      "file_type": "docx",
+      "file_size": 37047,
+      "status": "approved",
+      "original_filename": "Отчёт_Q4_2024.docx",
+      "rejection_reason": "",
+      "reviewed_at": "2025-01-02T11:00:00Z",
+      "created_at": "2025-01-01T10:00:00Z",
+      "updated_at": "2025-01-02T11:00:00Z",
+      "is_deleted": false,
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "documents.document",
+    "pk": "33333333-3333-3333-3333-333333333333",
+    "fields": {
+      "owner": 2,
+      "file": "documents/2025/01/02/invoice.pdf",
+      "file_type": "pdf",
+      "file_size": 1881,
+      "status": "pending",
+      "original_filename": "Счёт_001.pdf",
+      "rejection_reason": "",
+      "reviewed_at": null,
+      "created_at": "2025-01-02T14:00:00Z",
+      "updated_at": "2025-01-02T14:00:00Z",
+      "is_deleted": false,
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "documents.document",
+    "pk": "44444444-4444-4444-4444-444444444444",
+    "fields": {
+      "owner": 2,
+      "file": "documents/2025/01/02/notes.txt",
+      "file_type": "txt",
+      "file_size": 562,
+      "status": "pending",
+      "original_filename": "Заметки.txt",
+      "rejection_reason": "",
+      "reviewed_at": null,
+      "created_at": "2025-01-02T15:00:00Z",
+      "updated_at": "2025-01-02T15:00:00Z",
+      "is_deleted": false,
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "documents.document",
+    "pk": "55555555-5555-5555-5555-555555555555",
+    "fields": {
+      "owner": 2,
+      "file": "documents/2025/01/03/photo.jpg",
+      "file_type": "image",
+      "file_size": 12097,
+      "status": "rejected",
+      "original_filename": "Фото_низкое_качество.jpg",
+      "rejection_reason": "Изображение слишком размытое, невозможно прочитать текст",
+      "reviewed_at": "2025-01-03T09:00:00Z",
+      "created_at": "2025-01-03T08:00:00Z",
+      "updated_at": "2025-01-03T09:00:00Z",
+      "is_deleted": false,
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "documents.document",
+    "pk": "66666666-6666-6666-6666-666666666666",
+    "fields": {
+      "owner": 1,
+      "file": "documents/2025/01/03/presentation.pdf",
+      "file_type": "pdf",
+      "file_size": 2771,
+      "status": "rejected",
+      "original_filename": "Презентация_проекта.pdf",
+      "rejection_reason": "Документ повреждён, некоторые страницы не читаются",
+      "reviewed_at": "2025-01-03T16:00:00Z",
+      "created_at": "2025-01-03T12:00:00Z",
+      "updated_at": "2025-01-03T16:00:00Z",
+      "is_deleted": false,
+      "deleted_at": null
+    }
+  }
+]

@@ -1,0 +1,36 @@
+/* Кастомные стили для Django Admin */
+
+/* Увеличенные кнопки подтверждения/отклонения документов */
+.document-action-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.document-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.document-action-btn.approve {
+    background-color: #28a745;
+    border: none;
+    color: white;
+}
+
+.document-action-btn.approve:hover {
+    background-color: #218838;
+}
+
+.document-action-btn.reject {
+    background-color: #dc3545;
+    border: none;
+    color: white;
+}
+
+.document-action-btn.reject:hover {
+    background-color: #c82333;
+}
